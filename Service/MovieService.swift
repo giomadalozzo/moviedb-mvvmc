@@ -91,6 +91,20 @@ class MovieService: MovieServiceProtocol {
         ]
     }
 
+    private var decoder: JSONDecoder = {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+        return decoder
+    }()
+
+    private let session: URLSession
+
+    init(session: URLSession = .shared) {
+        self.session = session
+    }
+
+
     func getGenres() async throws -> [Genre] {
         let url: String = "https://api.themoviedb.org/3/genre/movie/list"
         guard let urlRequest: URL = URL(string: url) else {
@@ -103,12 +117,9 @@ class MovieService: MovieServiceProtocol {
         request.timeoutInterval = 10
         request.allHTTPHeaderFields = self.headers
 
-        let (data, _) = try await URLSession.shared.data(for: request)
+        let (data, _) = try await self.session.data(for: request)
 
-        var decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-
-        let decoded = try decoder.decode(GenreResponse.self, from: data)
+        let decoded = try self.decoder.decode(GenreResponse.self, from: data)
 
         return decoded.genres
     }
@@ -126,12 +137,9 @@ class MovieService: MovieServiceProtocol {
         request.timeoutInterval = 10
         request.allHTTPHeaderFields = self.headers
 
-        let (data, _) = try await URLSession.shared.data(for: request)
+        let (data, _) = try await self.session.data(for: request)
 
-        var decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-
-        let decoded = try decoder.decode(MovieResponse.self, from: data)
+        let decoded = try self.decoder.decode(MovieResponse.self, from: data)
 
         return decoded.results
     }
